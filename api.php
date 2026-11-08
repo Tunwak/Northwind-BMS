@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
@@ -26,7 +26,7 @@ function tableMap(): array { return [
 ]; }
 try {
  $pdo=db(); $action=$_GET['action']??'';
- if ($action==='login' && $_SERVER['REQUEST_METHOD']==='POST') { $b=body(); $name=trim((string)($b['username']??'')); $pass=(string)($b['password']??''); if ($name==='admin' && hash_equals((string)(getenv('APP_ADMIN_PASSWORD')?:'ChangeMe123!'),$pass)) { session_regenerate_id(true); $_SESSION['user']=['name'=>'ผู้ดูแลระบบ']; respond(['user'=>$_SESSION['user']]); } respond(['error'=>'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'],401); }
+ if ($action==='login' && $_SERVER['REQUEST_METHOD']==='POST') { $b=body(); $name=trim((string)($b['username']??'')); $pass=(string)($b['password']??''); if ($name==='admin' && (string)(getenv('APP_ADMIN_PASSWORD') ?: '') !== '' && hash_equals((string)getenv('APP_ADMIN_PASSWORD'),$pass)) { session_regenerate_id(true); $_SESSION['user']=['name'=>'ผู้ดูแลระบบ']; respond(['user'=>$_SESSION['user']]); } respond(['error'=>'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'],401); }
  if ($action==='logout') { $_SESSION=[]; session_destroy(); respond(['ok'=>true]); }
  if ($action==='me') { respond(['user'=>$_SESSION['user']??null]); }
  requireAuth();
@@ -43,3 +43,4 @@ try {
  if ($action==='dashboard') { $out=[];foreach(['products'=>'tb_products','categories'=>'tb_categories','customers'=>'tb_customers','orders'=>'tb_orders'] as $k=>$t)$out[$k]=(int)$pdo->query("SELECT COUNT(*) FROM `$t`")->fetchColumn();$out['revenue']=(float)$pdo->query('SELECT COALESCE(SUM(d.i_Quantity*p.i_Price),0) FROM tb_orderdetails d JOIN tb_products p ON p.i_ProductID=d.i_ProductID')->fetchColumn();$out['topProducts']=$pdo->query('SELECT p.c_ProductName name,SUM(d.i_Quantity) quantity FROM tb_orderdetails d JOIN tb_products p ON p.i_ProductID=d.i_ProductID GROUP BY p.i_ProductID ORDER BY quantity DESC LIMIT 8')->fetchAll();$out['topCustomers']=$pdo->query('SELECT c.c_customername name,COUNT(o.i_OrderID) orders FROM tb_customers c JOIN tb_orders o ON o.i_CustomerID=c.i_customerid GROUP BY c.i_customerid ORDER BY orders DESC LIMIT 8')->fetchAll();$out['monthly']=$pdo->query("SELECT SUBSTRING_INDEX(c_OrderDate,'/',-1) year, SUBSTRING_INDEX(SUBSTRING_INDEX(c_OrderDate,'/',2),'/',-1) month,COUNT(*) orders FROM tb_orders GROUP BY year,month ORDER BY year,month")->fetchAll();respond($out); }
  respond(['error'=>'ไม่พบ API'],404);
 } catch (Throwable $e) { error_log((string)$e); respond(['error'=>'ระบบเชื่อมต่อฐานข้อมูลไม่สำเร็จ ตรวจสอบการตั้งค่า config.php และการนำเข้า SQL'],500); }
+
