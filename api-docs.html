@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Documentation | Northwind BMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Sarabun,system-ui,sans-serif;background:#f2f5fa;color:#142033}.docs-shell{max-width:1120px}.hero{background:linear-gradient(130deg,#172554,#1d4ed8);color:#fff;border-radius:18px}.endpoint{scroll-margin-top:1rem}.method{font-size:.8rem;min-width:64px}.code-block{position:relative}.code-block pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:1rem;background:#0f172a;color:#e2e8f0;border-radius:.65rem}.section-card{border:1px solid #e2e8f0;border-radius:14px}.table th{white-space:nowrap}.toc a{text-decoration:none}.toc a:hover{text-decoration:underline}@media print{.no-print{display:none!important}body{background:#fff}.hero{background:#fff;color:#111;border:1px solid #aaa}.card{break-inside:avoid}.docs-shell{max-width:none}}
+  </style>
+</head>
+<body>
+<main class="container docs-shell py-4 py-lg-5">
+  <section class="hero p-4 p-lg-5 mb-4 shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      <div><div class="text-uppercase small opacity-75">Northwind BMS</div><h1 class="display-6 fw-bold mb-2">API Documentation</h1><p class="mb-0 opacity-75">เอกสาร endpoint รูปแบบข้อมูล การยืนยันตัวตน และตัวอย่างการเรียกใช้งาน</p></div>
+      <div class="d-flex flex-wrap gap-2 no-print"><a class="btn btn-light" href="download-api-docs.php">ดาวน์โหลดเอกสาร Markdown</a><button class="btn btn-outline-light" onclick="window.print()">พิมพ์ / บันทึก PDF</button><a class="btn btn-outline-light" href="/">กลับหน้าเว็บ</a></div>
+    </div>
+  </section>
+  <div class="alert alert-info"><strong>Base URL</strong><br><code>https://northwind-bms-production.up.railway.app/api.php</code><br>ทุก response เป็น JSON; endpoint ที่ต้องยืนยันตัวตนใช้ PHP session cookie จากการ login</div>
+  <div class="row g-4">
+    <aside class="col-lg-3 no-print"><div class="card section-card sticky-top" style="top:1rem"><div class="card-body toc"><h2 class="h6">สารบัญ</h2><nav class="d-flex flex-column gap-2"><a href="#auth">Authentication</a><a href="#read">Read endpoints</a><a href="#write">Write endpoints</a><a href="#errors">Status codes</a><a href="#safety">SQL safety</a></nav></div></div></aside>
+    <div class="col-lg-9">
+      <section id="auth" class="card section-card mb-4 endpoint"><div class="card-body p-4"><h2 class="h4">Authentication</h2><p>เรียก login ก่อนใช้งานข้อมูล API; `login`, `logout`, `me` เป็น public endpoint. รหัสผ่านผู้ดูแลระบบอ่านจาก environment variable <code>APP_ADMIN_PASSWORD</code>.</p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-primary method">POST</span> <code>?action=login</code></h3><div class="code-block"><pre><code>{
+  "username": "admin",
+  "password": "&lt;APP_ADMIN_PASSWORD&gt;"
+}</code></pre></div><p class="mt-2 mb-0">สำเร็จ: <code>200</code> และ <code>{"user":{"name":"ผู้ดูแลระบบ"}}</code>; login ไม่ผ่าน: <code>401</code>.</p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-secondary method">GET</span> <code>?action=me</code></h3><p>ส่งคืนผู้ใช้ปัจจุบัน หรือ <code>{"user":null}</code> เมื่อยังไม่ login.</p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-secondary method">GET</span> <code>?action=logout</code></h3><p class="mb-0">จบ session และส่งคืน <code>{"ok":true}</code>.</p>
+      </div></section>
+
+      <section id="read" class="card section-card mb-4 endpoint"><div class="card-body p-4"><h2 class="h4">Read endpoints</h2>
+        <h3 class="h6 mt-4"><span class="badge text-bg-secondary method">GET</span> <code>?action=list&amp;entity={entity}&amp;q={search}&amp;limit={limit}</code></h3><p>ค้นหารายการด้วย <code>q</code>; limit เริ่มต้น 200 และถูกจำกัดในช่วง 1–500. entities ที่รองรับ:</p>
+        <div class="table-responsive"><table class="table table-sm table-striped align-middle"><thead><tr><th>Entity</th><th>ข้อมูลหลัก</th><th>เขียนได้</th></tr></thead><tbody>
+          <tr><td><code>products</code></td><td>ชื่อสินค้า, ผู้ขาย, หมวดหมู่, หน่วย, ราคา</td><td>CRUD</td></tr>
+          <tr><td><code>categories</code></td><td>ชื่อและรายละเอียดหมวดหมู่</td><td>CRUD</td></tr>
+          <tr><td><code>orders</code></td><td>วันที่, ลูกค้า, พนักงาน, ขนส่ง, ยอดรวม</td><td>CRUD</td></tr>
+          <tr><td><code>orderdetails</code></td><td>คำสั่งซื้อ, สินค้า, จำนวน</td><td>CRUD</td></tr>
+          <tr><td><code>customers</code></td><td>ชื่อ, ผู้ติดต่อ, ที่อยู่, เมือง, ประเทศ</td><td>CRUD</td></tr>
+          <tr><td><code>suppliers</code></td><td>บริษัท, ผู้ติดต่อ, ที่อยู่, โทรศัพท์</td><td>CRUD</td></tr>
+          <tr><td><code>employees</code></td><td>ชื่อ, วันเกิด, รูป, หมายเหตุ</td><td>CRUD</td></tr>
+          <tr><td><code>shippers</code></td><td>บริษัทขนส่งและโทรศัพท์</td><td>CRUD</td></tr>
+        </tbody></table></div>
+        <p>ตัวอย่าง: <code>GET ?action=list&amp;entity=products&amp;q=tea&amp;limit=50</code></p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-secondary method">GET</span> <code>?action=detail&amp;id={orderId}</code></h3><p>ส่งคืนข้อมูลคำสั่งซื้อและ array <code>items</code> ที่มีสินค้า ราคา จำนวน และยอดต่อบรรทัด. ถ้าไม่พบ ส่ง <code>404</code>.</p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-secondary method">GET</span> <code>?action=dashboard</code></h3><p class="mb-0">ส่งคืนจำนวนข้อมูลแต่ละตาราง, รายได้โดยประมาณ, <code>topProducts</code>, <code>topCustomers</code> และจำนวนคำสั่งซื้อรายเดือนใน <code>monthly</code>.</p>
+      </div></section>
+
+      <section id="write" class="card section-card mb-4 endpoint"><div class="card-body p-4"><h2 class="h4">Write endpoints</h2><p>ส่ง body เป็น JSON ผ่าน POST; ฟิลด์ที่กำหนดต้องครบและผ่าน validation รวมถึงการตรวจสอบ foreign key.</p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-primary method">POST</span> <code>?action=save</code></h3><p>ไม่ส่ง <code>id</code> เพื่อสร้างรายการ; ส่ง <code>id</code> เพื่อแก้ไข. ตัวอย่างเพิ่มสินค้า:</p>
+        <div class="code-block"><pre><code>{
+  "entity": "products",
+  "row": {
+    "c_ProductName": "Chai",
+    "i_SupplierID": 1,
+    "i_CategoryID": 1,
+    "c_Unit": "10 boxes x 20 bags",
+    "i_Price": 18
+  }
+}</code></pre></div><p class="mt-2">การแก้ไขใช้ body เดิมและเพิ่ม <code>"id": 1</code>. รองรับ CRUD ครบทั้ง 8 entities ในตารางด้านบน.</p>
+        <h3 class="h6 mt-4"><span class="badge text-bg-primary method">POST</span> <code>?action=delete</code></h3><div class="code-block"><pre><code>{"entity":"products","id":1}</code></pre></div>
+        <p class="mt-2 mb-0">ลบ supplier/category/customer/employee/shipper/product ไม่ได้หากยังมีข้อมูลอื่นอ้างอิง; ลบ order จะลบ order details ใน transaction เดียวกัน.</p>
+      </div></section>
+
+      <section id="errors" class="card section-card mb-4 endpoint"><div class="card-body p-4"><h2 class="h4">Status codes</h2><ul class="mb-0"><li><code>200</code> สำเร็จ</li><li><code>400</code> entity หรือ input ไม่ถูกต้อง</li><li><code>401</code> ต้อง login หรือ credentials ไม่ถูกต้อง</li><li><code>404</code> action, entity หรือ record ไม่พบ</li><li><code>409</code> ลบไม่ได้เพราะมีข้อมูลอ้างอิง</li><li><code>422</code> validation ไม่ผ่าน</li><li><code>500</code> server/database error; รายละเอียดอยู่ใน server log</li></ul></div></section>
+
+      <section id="safety" class="card section-card mb-4 endpoint"><div class="card-body p-4"><h2 class="h4">SQL safety</h2><p class="mb-0">ค่าจาก client ผูกด้วย PDO prepared statements และปิด emulated prepares. ชื่อตาราง/คอลัมน์ dynamic เลือกจาก allowlist เท่านั้น; limit ถูกแปลงเป็น integer และจำกัดช่วง. อย่าต่อ input จากผู้ใช้เข้า SQL โดยตรง.</p></div></section>
+      <footer class="text-secondary small py-3">Northwind BMS · API Documentation</footer>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -51,7 +51,7 @@
     </aside>
 
     <main class="main">
-      <header class="topbar"><span id="crumb">แดชบอร์ดภาพรวม</span><span id="who" class="d-flex align-items-center gap-2 text-secondary"></span></header>
+      <header class="topbar"><span id="crumb">แดชบอร์ดภาพรวม</span><div class="d-flex align-items-center gap-2"><a class="btn btn-sm btn-outline-primary" href="api-docs.html">API Docs</a><span id="who" class="d-flex align-items-center gap-2 text-secondary"></span></div></header>
       <div class="container-fluid content"><div id="app"></div></div>
     </main>
   </div>

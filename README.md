@@ -6,7 +6,8 @@
 
 - **Public URL:** https://northwind-bms-production.up.railway.app/
 - **Source Code:** ซอร์สโค้ดใน repository นี้ หรือแพ็กเกจ [Northwind-BMS-source.zip](Northwind-BMS-source.zip)
-- **API Documentation:** [API.md](API.md)
+- **API Documentation (Web):** [เปิดหน้าเอกสาร API](https://northwind-bms-production.up.railway.app/api-docs.html)
+- **Download:** ปุ่มดาวน์โหลด Markdown ในหน้าเอกสาร หรือ [API.md](API.md)
 
 > Public URL ต้องมี Railway deployment สถานะ Active พร้อม MySQL variables และข้อมูล SQL ครบก่อนใช้งาน
 
@@ -44,6 +45,8 @@
 - `northwind.sql` — schema และข้อมูลตัวอย่าง
 - `Dockerfile` — PHP CLI พร้อม `pdo_mysql` สำหรับ Railway
 - `API.md` — API documentation พร้อมตัวอย่าง request/response
+- `api-docs.html` — หน้าเอกสาร API ที่เปิดได้จากเว็บ
+- `download-api-docs.php` — endpoint ดาวน์โหลด Markdown
 
 ## ติดตั้งและรันในเครื่อง
 

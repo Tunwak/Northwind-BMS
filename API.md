@@ -2,6 +2,9 @@
 
 Base URL: `https://northwind-bms-production.up.railway.app/api.php`
 
+View online: https://northwind-bms-production.up.railway.app/api-docs.html
+Download this document: https://northwind-bms-production.up.railway.app/download-api-docs.php
+
 ทุก endpoint ส่ง JSON (`application/json; charset=utf-8`) และใช้ session cookie. เรียก `login` ก่อน endpoint ที่ต้องยืนยันตัวตน. Endpoint สาธารณะคือ `login`, `logout`, `me`; endpoint อื่นต้องมี session.
 
 ## Authentication
