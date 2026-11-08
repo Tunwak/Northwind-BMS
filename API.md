@@ -1,67 +1,65 @@
-﻿# Northwind BMS — API Documentation
+# Northwind BMS API
 
 Base URL: `https://northwind-bms-production.up.railway.app/api.php`
 
-All responses use JSON (`application/json; charset=utf-8`). The API uses a PHP session cookie. Call `login` first, then keep the cookie for authenticated requests. `login`, `logout`, and `me` are public; all other actions require an authenticated session.
+ทุก endpoint ส่ง JSON (`application/json; charset=utf-8`) และใช้ session cookie. เรียก `login` ก่อน endpoint ที่ต้องยืนยันตัวตน. Endpoint สาธารณะคือ `login`, `logout`, `me`; endpoint อื่นต้องมี session.
 
 ## Authentication
 
 ### `POST ?action=login`
 
-JSON body:
+Request JSON:
 
 ```json
 {"username":"admin","password":"<APP_ADMIN_PASSWORD>"}
 ```
 
-Success: `200` with `{"user":{"name":"ผู้ดูแลระบบ"}}`; invalid credentials: `401`.
+เมื่อสำเร็จได้ `200` และ `{"user":{"name":"ผู้ดูแลระบบ"}}`; รหัสผิดได้ `401`. ตั้งรหัสผ่านผ่าน `APP_ADMIN_PASSWORD` เท่านั้น.
 
 ### `GET ?action=me`
 
-Returns the current user or `{"user":null}`.
+ส่งคืน user ปัจจุบัน หรือ `{"user":null}` เมื่อยังไม่ login.
 
 ### `GET ?action=logout`
 
-Ends the current session and returns `{"ok":true}`.
+จบ session และส่งคืน `{"ok":true}`.
 
 ## Read endpoints
 
 ### `GET ?action=list&entity={entity}&q={search}&limit={limit}`
 
-Lists records, optionally searching supported fields. `limit` defaults to 200 and is clamped to 1–500.
-
-Supported entities:
+ค้นหาและแสดงรายการ; `limit` เริ่มต้น 200 และจำกัดระหว่าง 1–500. รองรับ entities:
 
 - `products`: `i_ProductID`, `c_ProductName`, `i_SupplierID`, `i_CategoryID`, `c_Unit`, `i_Price`
 - `categories`: `i_CategoryID`, `c_CategoryName`, `c_Description`
+- `orders`: order ID/date, customer, employee, shipper และยอดรวมจาก order details
+- `orderdetails`: detail ID, order ID/date, product ID/name และ quantity
 - `customers`: `i_customerid`, `c_customername`, `c_contactname`, `c_address`, `c_city`, `c_postalcode`, `c_country`
 - `suppliers`: `i_SupplierID`, `c_SupplierName`, `c_ContactName`, `c_Address`, `c_City`, `c_PostalCode`, `c_Country`, `c_Phone`
 - `employees`: `i_EmployeeID`, `c_LastName`, `c_FirstName`, `c_BirthDate`, `c_Photo`, `c_Notes`
 - `shippers`: `i_ShipperID`, `c_ShipperName`, `c_Phone`
-- `orders`: order summary with customer, employee, shipper, date, and calculated total
 
-Example: `GET ?action=list&entity=products&q=tea&limit=50`
+Example: `GET ?action=list&entity=products&q=tea&limit=50`.
 
 ### `GET ?action=detail&id={orderId}`
 
-Returns order information and its `items` array, including product, unit price, quantity, and line total. Returns `404` if the order does not exist.
+ส่งคืนรายละเอียดคำสั่งซื้อพร้อม `items` ซึ่งมีสินค้า ราคา จำนวน และยอดต่อบรรทัด; ถ้าไม่พบได้ `404`.
 
 ### `GET ?action=dashboard`
 
-Returns aggregate data: counts for products, categories, customers, and orders; estimated revenue; top products; top customers; and monthly order counts.
+ส่งคืน count ของตารางหลัก, `revenue`, `topProducts`, `topCustomers` และจำนวนคำสั่งซื้อตามเดือนใน `monthly`.
 
 ## Write endpoints
 
-Writes are JSON `POST` requests. Every field listed for an entity is required by the current validation.
+ทุก write เป็น JSON `POST`. ฟิลด์ที่กำหนดสำหรับ entity ต้องมีครบ; backend ตรวจชนิดตัวเลขและการมีอยู่ของ foreign-key records.
 
 ### `POST ?action=save`
 
-Create by omitting `id`; update by providing `id`.
+ไม่ส่ง `id` เพื่อเพิ่ม; ส่ง `id` เพื่อแก้ไข. ตัวอย่างเพิ่มสินค้า:
 
 ```json
 {
   "entity":"products",
-  "id":1,
   "row":{
     "c_ProductName":"Chai",
     "i_SupplierID":1,
@@ -72,7 +70,7 @@ Create by omitting `id`; update by providing `id`.
 }
 ```
 
-The `row` fields must match the selected entity's allowlisted columns. Success returns `{"ok":true,"id":1}`. CRUD is supported for products, categories, customers, suppliers, employees, and shippers. Orders are read-only in this application.
+Update ใช้ body เดิมและเพิ่ม `"id":1`. รองรับ CRUD ทั้ง 8 entities ที่ระบุใน `list`.
 
 ### `POST ?action=delete`
 
@@ -80,17 +78,18 @@ The `row` fields must match the selected entity's allowlisted columns. Success r
 {"entity":"products","id":1}
 ```
 
-Deletes the selected record and returns `{"ok":true}`. Delete is supported for the same six CRUD entities.
+ลบ record แล้วตอบ `{"ok":true}`. ป้องกันการลบ supplier/category/customer/employee/shipper/product ที่ยังถูกใช้อ้างอิง; ลบ order จะลบ order details ใน transaction เดียวกัน.
 
-## Status codes and errors
+## Status codes
 
-- `200` — request succeeded
-- `400` — unsupported write entity
-- `401` — login required or credentials invalid
-- `404` — unknown entity, API action, or missing order
-- `422` — required field missing
-- `500` — server/database failure; detailed exception is written to server logs, not returned to clients
+- `200` สำเร็จ
+- `400` entity หรือ input ไม่ถูกต้อง
+- `401` login จำเป็น หรือข้อมูล login ไม่ถูกต้อง
+- `404` entity/action/record ไม่พบ
+- `409` ลบไม่ได้เพราะ record ยังถูกอ้างอิง
+- `422` validation ไม่ผ่าน
+- `500` server/database error (รายละเอียดอยู่ใน server log)
 
 ## SQL safety
 
-User-provided values are bound through PDO prepared statements. PDO emulated prepares are disabled. Dynamic table and column names are selected only from the API's fixed allowlist; the list limit is cast to an integer and clamped. Do not add SQL string concatenation with client-provided values.
+ค่าจาก client ใช้ PDO prepared statements และปิด emulated prepares. ตาราง/คอลัมน์ dynamic มาจาก allowlist เท่านั้น; limit cast เป็น integer และ clamp. ห้ามต่อค่าที่ผู้ใช้ส่งเข้า SQL โดยตรง.
